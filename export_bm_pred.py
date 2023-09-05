@@ -50,6 +50,8 @@ precision = []
 recall = []
 f1 = []
 
+TP, TN, FP, FN = 0, 0, 0, 0
+
 for i, file in enumerate(files):
 
     tile = file.split('\\')[-1].split('.')[0].split('results_')[1].split('_nodes')[0]
@@ -77,27 +79,29 @@ for i, file in enumerate(files):
     # Save the results
     edges_df[edges_df['pred'] == 1][['source', 'target','pred']].to_json('../results/node_classification_results/edge_results/results_' + tile + '_edges.json', orient='values')
 
-    # Compute the metrics
-    TP = edges_df[(edges_df['pred'] == 1) & (edges_df['type'] == 1)].shape[0]
-    TN = edges_df[(edges_df['pred'] == 0) & (edges_df['type'] == 0)].shape[0]
-    FP = edges_df[(edges_df['pred'] == 1) & (edges_df['type'] == 0)].shape[0]
-    FN = edges_df[(edges_df['pred'] == 0) & (edges_df['type'] == 1)].shape[0]
+    TP0 = edges_df[(edges_df['pred'] == 1) & (edges_df['type'] == 1)].shape[0]
+    TN0 = edges_df[(edges_df['pred'] == 0) & (edges_df['type'] == 0)].shape[0]
+    FP0 = edges_df[(edges_df['pred'] == 1) & (edges_df['type'] == 0)].shape[0]
+    FN0 = edges_df[(edges_df['pred'] == 0) & (edges_df['type'] == 1)].shape[0]
 
-    _precision = TP / (TP + FP)
-    _recall = TP / (TP + FN)
-    _f1 = 2 * (_precision * _recall) / (_precision + _recall)
+    precision = TP0 / (TP0 + FP0)
+    recall = TP0 / (TP0 + FN0)
+    f1 = 2 * (precision * recall) / (precision + recall)
 
-    precision.append(_precision)
-    recall.append(_recall)
-    f1.append(_f1)
+    print('Precision: ', precision)
+    print('Recall: ', recall)
+    print('F1: ', f1)
 
-    print('Precision: ', _precision)
-    print('Recall: ', _recall)
-    print('F1: ', _f1)
+    TP += TP0
+    TN += TN0
+    FP += FP0
+    FN += FN0
 
-print('Average Precision: ', np.mean(precision))
-print('Average Recall: ', np.mean(recall))
-print('Average F1: ', np.mean(f1))
+precision = TP / (TP + FP)
+recall = TP / (TP + FN)
+f1 = 2 * (precision * recall) / (precision + recall)
 
-
-
+print("Final results: ")
+print('Precision: ', precision)
+print('Recall: ', recall)
+print('F1: ', f1)
